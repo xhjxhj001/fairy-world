@@ -15,6 +15,7 @@ fi
 # 检查 node_modules 是否存在
 if [ ! -d "node_modules" ]; then
     echo "📦 正在安装依赖..."
+    export PUPPETEER_SKIP_DOWNLOAD=true
     npm install
     echo ""
 fi
@@ -51,5 +52,4 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # 启动服务器
-node server.js
-
+nohup node server.js > run.log &
