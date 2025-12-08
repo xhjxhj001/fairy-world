@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精灵世界 - 治愈放置游戏</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // 检查登录状态
+        console.log('🎮 index.html 正在加载...');
+        const currentUser = localStorage.getItem('currentUser');
+        console.log('📦 localStorage currentUser:', currentUser);
+
+        if (!currentUser) {
+            console.log('❌ 未找到登录信息，跳转到登录页');
+            window.location.href = 'auth.html';
+        } else {
+            console.log('✅ 找到登录信息，继续加载游戏');
+            try {
+                const userData = JSON.parse(currentUser);
+                console.log('👤 用户数据:', userData);
+            } catch (e) {
+                console.error('❌ 解析用户数据失败:', e);
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="game-container" class="game-container">
+        <!-- 顶部状态栏 -->
+        <div class="status-bar">
+            <div class="user-info" id="user-info">
+                <span id="user-nickname"></span>
+            </div>
+            <div class="resource-group">
+                <div class="resource-item">
+                    <span class="resource-icon">☀️</span>
+                    <span id="sunlight-count">0</span>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon">✨</span>
+                    <span id="starlight-count">0</span>
+                </div>
+            </div>
+            <div class="time-indicator" id="time-indicator">
+                <span id="time-text">白天</span>
+            </div>
+            <button class="music-toggle-btn" id="music-toggle-btn" title="音乐控制">
+                🎵
+            </button>
+        </div>
+
+        <!-- 主场景 -->
+        <div class="main-scene" id="main-scene">
+            <!-- 背景层 -->
+            <div class="background-layer" id="background-layer">
+                <div class="house-container" id="house">
+                    <!-- House will be rendered via CSS background -->
+                </div>
+                <div class="garden" id="garden">
+                    <div class="resource-field sunlight-field" id="sunlight-field"></div>
+                    <div class="resource-field starlight-field" id="starlight-field"></div>
+                </div>
+                <div class="sky" id="sky">
+                    <div class="cloud" style="left: 10%; animation-delay: 0s;"></div>
+                    <div class="cloud" style="left: 50%; animation-delay: 2s;"></div>
+                    <div class="cloud" style="left: 80%; animation-delay: 4s;"></div>
+                </div>
+            </div>
+
+            <!-- 主角 -->
+            <div class="character" id="character">
+                <div class="character-sprite" id="character-sprite"></div>
+                <div class="character-status" id="character-status">在家</div>
+            </div>
+
+            <!-- 访客提示 -->
+            <div class="visitor-notice" id="visitor-notice" style="display: none;">
+                <div class="notice-content">
+                    <span class="notice-icon">🎁</span>
+                    <span class="notice-text">有访客留下了礼物！</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 面板遮罩 -->
+        <div class="panel-overlay" id="panel-overlay"></div>
+
+        <!-- 底部操作栏 -->
+        <div class="action-bar" id="action-bar">
+            <button class="action-btn" id="backpack-btn">
+                <span class="btn-icon">🎒</span>
+                <span class="btn-text">行囊</span>
+            </button>
+            <button class="action-btn" id="collection-btn">
+                <span class="btn-icon">📷</span>
+                <span class="btn-text">收藏</span>
+            </button>
+            <button class="action-btn" id="social-btn">
+                <span class="btn-icon">🌍</span>
+                <span class="btn-text">社区</span>
+            </button>
+            <button class="action-btn" id="sleep-btn">
+                <span class="btn-icon">🌙</span>
+                <span class="btn-text">助眠</span>
+            </button>
+        </div>
+
+        <!-- 访问模式下的特殊操作栏 -->
+        <div class="visitor-action-bar" id="visitor-action-bar" style="display: none;">
+            <button class="visitor-btn" id="back-home-btn">
+                <span class="btn-icon">🏠</span>
+                <span class="btn-text">回到自己的小屋</span>
+            </button>
+            <button class="visitor-btn" id="add-friend-btn">
+                <span class="btn-icon">➕</span>
+                <span class="btn-text">添加为好友</span>
+            </button>
+        </div>
+
+        <!-- 行囊面板 -->
+        <div class="panel" id="backpack-panel">
+            <div class="panel-header">
+                <h2>准备行囊</h2>
+                <button class="close-btn" id="close-backpack">✕</button>
+            </div>
+            <div class="panel-content">
+                <div class="selected-items">
+                    <div class="selected-header">
+                        <h3>已选择</h3>
+                        <span class="selected-hint">点击 × 取消选择</span>
+                    </div>
+                    <div class="selected-list" id="selected-items"></div>
+                    <button class="confirm-btn" id="confirm-backpack">确认出发</button>
+                </div>
+                <div class="item-category">
+                    <h3>食物</h3>
+                    <div class="item-list-wrapper">
+                        <div class="item-list horizontal-scroll" id="food-list"></div>
+                    </div>
+                </div>
+                <div class="item-category">
+                    <h3>玩具</h3>
+                    <div class="item-list-wrapper">
+                        <div class="item-list horizontal-scroll" id="toy-list"></div>
+                    </div>
+                </div>
+                <div class="item-category">
+                    <h3>护身符</h3>
+                    <div class="item-list-wrapper">
+                        <div class="item-list horizontal-scroll" id="charm-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 收藏面板 -->
+        <div class="panel" id="collection-panel">
+            <div class="panel-header">
+                <h2>我的收藏</h2>
+                <button class="close-btn" id="close-collection">✕</button>
+            </div>
+            <div class="panel-content">
+                <div class="collection-tabs">
+                    <button class="tab-btn active" data-tab="photos">照片</button>
+                    <button class="tab-btn" data-tab="souvenirs">纪念品</button>
+                    <button class="tab-btn" data-tab="dreams">梦境</button>
+                </div>
+                <div class="collection-content" id="collection-content"></div>
+            </div>
+        </div>
+
+        <!-- 社区面板 -->
+        <div class="panel" id="social-panel">
+            <div class="panel-header">
+                <h2>共享社区</h2>
+                <button class="close-btn" id="close-social">✕</button>
+            </div>
+            <div class="panel-content">
+                <div class="social-tabs">
+                    <button class="tab-btn active" data-tab="map">共享地图</button>
+                    <button class="tab-btn" data-tab="online">在线玩家</button>
+                    <button class="tab-btn" data-tab="visitors">访客记录</button>
+                    <button class="tab-btn" data-tab="friends">好友</button>
+                </div>
+                <div class="social-content" id="social-content"></div>
+            </div>
+        </div>
+
+        <!-- 助眠面板 -->
+        <div class="panel" id="sleep-panel">
+            <div class="panel-header">
+                <h2>晚安时光</h2>
+                <button class="close-btn" id="close-sleep">✕</button>
+            </div>
+            <div class="panel-content">
+                <div class="sleep-options">
+                    <button class="sleep-option-btn" id="story-btn">
+                        <span class="option-icon">📖</span>
+                        <span class="option-text">晚安故事</span>
+                    </button>
+                    <button class="sleep-option-btn" id="sleep-mode-btn">
+                        <span class="option-icon">🌙</span>
+                        <span class="option-text">睡眠模式</span>
+                    </button>
+                    <div class="dream-preview" id="dream-preview" style="display: none;">
+                        <h3>昨晚的梦境</h3>
+                        <div class="dream-image" id="dream-image"></div>
+                        <p class="dream-text" id="dream-text"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 睡眠模式全屏 -->
+        <div class="sleep-mode" id="sleep-mode" style="display: none;">
+            <div class="sleep-character" id="sleep-character"></div>
+            <div class="sleep-controls">
+                <button class="wake-btn" id="wake-btn">唤醒</button>
+            </div>
+        </div>
+
+        <!-- 通知提示 -->
+        <div class="notification" id="notification" style="display: none;">
+            <span id="notification-text"></span>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+
+</html>

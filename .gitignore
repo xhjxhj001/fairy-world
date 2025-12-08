@@ -1,0 +1,38 @@
+# Node modules
+node_modules/
+
+# 用户数据
+user_data/
+*.db
+
+# SSL 证书和密钥（不要提交到版本控制）
+ssl/
+*.pem
+*.key
+*.crt
+*.cert
+
+# 日志文件
+*.log
+logs/
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# 编辑器配置
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+tmp/
+temp/
+*.tmp
+
+# 备份文件
+*.backup
+*.bak
+

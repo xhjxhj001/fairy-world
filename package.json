@@ -1,0 +1,16 @@
+{
+  "name": "idle-game-test",
+  "version": "1.0.0",
+  "description": "自动化测试脚本",
+  "main": "test.js",
+  "scripts": {
+    "test": "node test.js",
+    "server": "node server.js"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "proper-lockfile": "^4.1.2",
+    "puppeteer": "^21.0.0",
+    "ws": "^8.18.3"
+  }
+}

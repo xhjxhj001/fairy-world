@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>精灵世界 - 登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .auth-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .logo-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .logo-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .logo-subtitle {
+            font-size: 14px;
+            color: #888;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 24px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .guest-btn {
+            width: 100%;
+            padding: 14px;
+            background: transparent;
+            border: 2px solid #667eea;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #667eea;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+        }
+
+        .guest-btn:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-msg {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .error-msg.show {
+            display: block;
+        }
+
+        .success-msg {
+            color: #27ae60;
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+
+        .success-msg.show {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="logo">
+            <div class="logo-icon">🦊</div>
+            <div class="logo-title">精灵世界</div>
+            <div class="logo-subtitle">治愈放置游戏</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="login">登录</button>
+            <button class="tab-btn" data-tab="register">注册</button>
+        </div>
+
+        <!-- 登录表单 -->
+        <div class="form-container active" id="login-form">
+            <div class="form-group">
+                <label for="login-username">账号</label>
+                <input type="text" id="login-username" placeholder="请输入账号">
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" placeholder="请输入密码">
+            </div>
+            <div class="error-msg" id="login-error"></div>
+            <button class="submit-btn" id="login-btn">登录</button>
+            <button class="guest-btn" id="guest-btn">访客模式</button>
+        </div>
+
+        <!-- 注册表单 -->
+        <div class="form-container" id="register-form">
+            <div class="form-group">
+                <label for="register-nickname">昵称</label>
+                <input type="text" id="register-nickname" placeholder="请输入昵称（2-10个字符）">
+            </div>
+            <div class="form-group">
+                <label for="register-username">账号</label>
+                <input type="text" id="register-username" placeholder="请输入账号（4-20个字符，字母数字下划线）">
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" placeholder="请输入密码（至少6个字符）">
+            </div>
+            <div class="form-group">
+                <label for="register-password-confirm">确认密码</label>
+                <input type="password" id="register-password-confirm" placeholder="请再次输入密码">
+            </div>
+            <div class="error-msg" id="register-error"></div>
+            <div class="success-msg" id="register-success"></div>
+            <button class="submit-btn" id="register-btn">注册</button>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let wsConnected = false;
+
+        // 连接到WebSocket服务器
+        function connectWebSocket() {
+            return new Promise((resolve, reject) => {
+                try {
+                    // 动态获取主机名和端口
+                    const host = window.location.hostname || 'localhost';
+                    const port = window.location.port;
+
+                    // 根据页面协议选择 WebSocket 协议
+                    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+
+                    // 智能端口检测：
+                    // 1. 如果是标准端口（80/443）或通过 Nginx 代理，使用 /ws 路径
+                    // 2. 如果是直接访问（3001端口），使用独立的 WebSocket 端口
+                    let wsUrl;
+                    if (port === '' || port === '80' || port === '443') {
+                        // 通过 Nginx 代理或标准端口，使用相对路径
+                        wsUrl = `${protocol}//${host}/ws`;
+                    } else if (port === '3001' || port === '3443') {
+                        // 直接访问 HTTP 服务器，使用独立 WebSocket 端口
+                        const wsPort = window.location.protocol === 'https:' ? '8081' : '8080';
+                        wsUrl = `${protocol}//${host}:${wsPort}`;
+                    } else {
+                        // 其他情况，尝试使用相对路径
+                        wsUrl = `${protocol}//${host}:${port}/ws`;
+                    }
+
+                    console.log('🔗 连接到 WebSocket 服务器:', wsUrl);
+                    ws = new WebSocket(wsUrl);
+
+                    ws.onopen = () => {
+                        console.log('✅ 已连接到服务器');
+                        wsConnected = true;
+                        resolve();
+                    };
+
+                    ws.onerror = (error) => {
+                        console.error('WebSocket error:', error);
+                        wsConnected = false;
+                        reject(new Error('无法连接到服务器，请确保服务器已启动'));
+                    };
+
+                    ws.onclose = () => {
+                        wsConnected = false;
+                    };
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        }
+
+        // Tab 切换
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.form-container').forEach(f => f.classList.remove('active'));
+                btn.classList.add('active');
+                const tabName = btn.dataset.tab;
+                document.getElementById(`${tabName}-form`).classList.add('active');
+            });
+        });
+
+        // 显示错误信息
+        function showError(elementId, message) {
+            const errorEl = document.getElementById(elementId);
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 5000);
+        }
+
+        // 显示成功信息
+        function showSuccess(elementId, message) {
+            const successEl = document.getElementById(elementId);
+            successEl.textContent = message;
+            successEl.classList.add('show');
+            setTimeout(() => successEl.classList.remove('show'), 5000);
+        }
+
+        // 注册
+        document.getElementById('register-btn').addEventListener('click', async () => {
+            const nickname = document.getElementById('register-nickname').value.trim();
+            const username = document.getElementById('register-username').value.trim();
+            const password = document.getElementById('register-password').value;
+            const confirmPassword = document.getElementById('register-password-confirm').value;
+            const btn = document.getElementById('register-btn');
+
+            // 客户端验证
+            if (!nickname || nickname.length < 2 || nickname.length > 10) {
+                showError('register-error', '昵称必须在2-10个字符之间');
+                return;
+            }
+            if (!username || username.length < 4 || username.length > 20) {
+                showError('register-error', '账号必须在4-20个字符之间');
+                return;
+            }
+            if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                showError('register-error', '账号只能包含字母、数字和下划线');
+                return;
+            }
+            if (!password || password.length < 6) {
+                showError('register-error', '密码至少需要6个字符');
+                return;
+            }
+            if (password !== confirmPassword) {
+                showError('register-error', '两次输入的密码不一致');
+                return;
+            }
+
+            // 禁用按钮
+            btn.disabled = true;
+            btn.innerHTML = '注册中...<span class="loading"></span>';
+
+            try {
+                // 连接服务器
+                if (!wsConnected) {
+                    await connectWebSocket();
+                }
+
+                // 发送注册请求
+                ws.send(JSON.stringify({
+                    type: 'register',
+                    username: username,
+                    nickname: nickname,
+                    password: password
+                }));
+
+                // 等待服务器响应
+                ws.onmessage = (event) => {
+                    const response = JSON.parse(event.data);
+
+                    if (response.type === 'register_result') {
+                        btn.disabled = false;
+                        btn.innerHTML = '注册';
+
+                        if (response.success) {
+                            showSuccess('register-success', '注册成功！正在登录...');
+
+                            // 自动登录
+                            setTimeout(() => {
+                                document.getElementById('login-username').value = username;
+                                document.getElementById('login-password').value = password;
+                                document.getElementById('login-btn').click();
+                            }, 1000);
+                        } else {
+                            showError('register-error', response.error || '注册失败');
+                        }
+                    }
+                };
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = '注册';
+                showError('register-error', e.message || '注册失败，请稍后重试');
+            }
+        });
+
+        // 登录
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+
+            if (!username || !password) {
+                showError('login-error', '请输入账号和密码');
+                return;
+            }
+
+            // 禁用按钮
+            btn.disabled = true;
+            btn.innerHTML = '登录中...<span class="loading"></span>';
+
+            try {
+                // 连接服务器
+                if (!wsConnected) {
+                    await connectWebSocket();
+                }
+
+                // 发送登录请求
+                ws.send(JSON.stringify({
+                    type: 'login',
+                    username: username,
+                    password: password
+                }));
+
+                // 等待服务器响应
+                ws.onmessage = (event) => {
+                    const response = JSON.parse(event.data);
+
+                    if (response.type === 'login_result') {
+                        btn.disabled = false;
+                        btn.innerHTML = '登录';
+
+                        if (response.success) {
+                            // 保存用户信息到localStorage（不包含密码）
+                            localStorage.setItem('currentUser', JSON.stringify({
+                                nickname: response.nickname,
+                                username: username,
+                                isGuest: false,
+                                sessionId: response.sessionId
+                            }));
+
+                            // 跳转到游戏
+                            window.location.href = 'index.html';
+                        } else {
+                            showError('login-error', response.error || '登录失败');
+                        }
+                    }
+                };
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = '登录';
+                showError('login-error', e.message || '登录失败，请稍后重试');
+            }
+        });
+
+        // 访客模式
+        document.getElementById('guest-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('guest-btn');
+            btn.disabled = true;
+            btn.innerHTML = '连接中...';
+
+            try {
+                // 连接服务器
+                if (!wsConnected) {
+                    await connectWebSocket();
+                }
+
+                // 检查是否已有访客信息，如果有则复用
+                let guestId, nickname;
+                const existingUser = localStorage.getItem('currentUser');
+                if (existingUser) {
+                    try {
+                        const userData = JSON.parse(existingUser);
+                        if (userData.isGuest) {
+                            guestId = userData.username;
+                            nickname = userData.nickname;
+                            console.log('🎭 复用现有访客账号:', guestId);
+                        }
+                    } catch (e) {
+                        console.log('解析现有用户数据失败');
+                    }
+                }
+
+                // 如果没有现有访客信息，生成新的
+                if (!guestId) {
+                    guestId = `GUEST-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+                    nickname = `访客${Math.floor(Math.random() * 10000)}`;
+                    console.log('🆕 创建新访客账号:', guestId);
+                }
+
+                // 发送访客登录请求
+                ws.send(JSON.stringify({
+                    type: 'guest_login',
+                    guestId: guestId,
+                    nickname: nickname
+                }));
+
+                // 等待服务器响应
+                ws.onmessage = (event) => {
+                    const response = JSON.parse(event.data);
+
+                    if (response.type === 'guest_login_result') {
+                        if (response.success) {
+                            // 保存访客信息
+                            localStorage.setItem('currentUser', JSON.stringify({
+                                nickname: response.nickname,
+                                username: response.guestId,
+                                isGuest: true
+                            }));
+
+                            // 跳转到游戏
+                            window.location.href = 'index.html';
+                        } else {
+                            btn.disabled = false;
+                            btn.innerHTML = '访客模式';
+                            showError('login-error', '访客登录失败');
+                        }
+                    }
+                };
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = '访客模式';
+                showError('login-error', e.message || '访客登录失败');
+            }
+        });
+
+        // 回车提交
+        document.getElementById('login-password').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('login-btn').click();
+        });
+        document.getElementById('register-password-confirm').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') document.getElementById('register-btn').click();
+        });
+
+        // 页面加载时尝试连接
+        window.addEventListener('load', async () => {
+            try {
+                await connectWebSocket();
+            } catch (e) {
+                console.warn('Initial connection failed:', e.message);
+            }
+        });
+    </script>
+</body>
+
+</html>
