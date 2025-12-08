@@ -640,8 +640,9 @@ class IdleGame {
             // 收到新的分享
             const location = message.location;
             // 避免重复添加自己刚分享的（虽然服务器可能会发回来）
+            const username = location.sharedByUsername || location.sharedBy;
             const isDuplicate = this.gameState.sharedLocations.some(l => 
-                l.code === location.code && l.sharedBy === location.sharedBy && l.timestamp === location.timestamp
+                (l.sharedByUsername || l.sharedBy) === username && l.code === location.code && l.timestamp === location.timestamp
             );
             
             if (!isDuplicate) {
@@ -1631,7 +1632,7 @@ class IdleGame {
 
         // 检查是否已经分享过
         const alreadyShared = this.gameState.sharedLocations.some(
-            l => l.code === location.code && l.sharedBy === this.currentUser.username
+            l => l.code === location.code && (l.sharedByUsername === this.currentUser.username || l.sharedBy === this.currentUser.username)
         );
         
         if (alreadyShared) {
@@ -1641,7 +1642,8 @@ class IdleGame {
 
         const locationToShare = {
             ...location,
-            sharedBy: this.currentUser.username,
+            sharedBy: this.currentUser.nickname,  // 使用昵称而不是账号名
+            sharedByUsername: this.currentUser.username,  // 保留账号名用于去重等逻辑
             date: new Date().toLocaleDateString('zh-CN'),
             timestamp: Date.now()
         };
@@ -2134,7 +2136,9 @@ class IdleGame {
         // 去重：相同地点+相同分享者只保留最新的一条
         const uniqueMap = new Map();
         this.gameState.sharedLocations.forEach(loc => {
-            const key = `${loc.code}-${loc.sharedBy}`;
+            // 使用 sharedByUsername 或 sharedBy（兼容旧数据）
+            const username = loc.sharedByUsername || loc.sharedBy;
+            const key = `${loc.code}-${username}`;
             if (!uniqueMap.has(key)) {
                 uniqueMap.set(key, loc);
             }
