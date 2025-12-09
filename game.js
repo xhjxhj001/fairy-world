@@ -340,15 +340,24 @@ class IdleGame {
                         }
                     }, 10000);
                 } else {
-                    // 正式用户使用sessionId进行认证
-                    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
-                    console.log('📦 localStorage 数据:', {
-                        username: userData.username,
-                        nickname: userData.nickname,
-                        hasSessionId: !!userData.sessionId
-                    });
-                    
-                    if (userData.sessionId) {
+                // 正式用户使用sessionId进行认证
+                let userData;
+                try {
+                    userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                } catch (e) {
+                    console.error('❌ 本地数据损坏，清除缓存');
+                    localStorage.removeItem('currentUser');
+                    window.location.href = 'auth.html';
+                    return;
+                }
+
+                console.log('📦 localStorage 数据:', {
+                    username: userData.username,
+                    nickname: userData.nickname,
+                    hasSessionId: !!userData.sessionId
+                });
+                
+                if (userData.sessionId) {
                         console.log('🔑 发送会话认证请求, sessionId:', userData.sessionId.substring(0, 10) + '...');
                         this.ws.send(JSON.stringify({
                             type: 'session_auth',
@@ -554,8 +563,12 @@ class IdleGame {
                 // 会话认证失败，跳转到登录页
                 console.error('❌ 会话认证失败:', message.error);
                 this.showNotification(message.error || '认证失败，请重新登录');
+                
+                // 立即清除本地凭证，防止重连逻辑再次使用无效凭证
+                localStorage.removeItem('currentUser');
+                this.isIntentionalClose = true; // 标记为主动关闭，阻止自动重连
+                
                 setTimeout(() => {
-                    localStorage.removeItem('currentUser');
                     window.location.href = 'auth.html';
                 }, 2000);
             }
