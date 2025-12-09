@@ -153,6 +153,52 @@ class IdleGame {
         ];
 
         this.init();
+
+        // 启动时检查一次更新
+        this.checkUpdate();
+        // 自动更新检查定时器
+        this.checkUpdateTimer = setInterval(() => this.checkUpdate(), 60000); // 每分钟检查
+    }
+
+    // 检查更新
+    async checkUpdate() {
+        try {
+            // 如果没有注入 APP_VERSION，可能是本地开发或旧版页面，跳过检查
+            if (!window.APP_VERSION) return;
+
+            const response = await fetch('/version');
+            if (response.ok) {
+                const data = await response.json();
+                const serverVersion = data.version;
+                
+                if (serverVersion && window.APP_VERSION !== serverVersion) {
+                    console.log(`📱 发现新版本: ${serverVersion} (当前: ${window.APP_VERSION})`);
+                    
+                    // 提示用户刷新
+                    // 使用 confirm 可能打断游戏体验，但在 idle game 中通常可以接受
+                    // 或者可以只显示一个通知 UI，让用户自己点击刷新
+                    const notification = document.getElementById('notification');
+                    const notificationText = document.getElementById('notification-text');
+                    
+                    if (notification && notificationText) {
+                        notificationText.innerHTML = `
+                            发现新版本！<br>
+                            <button onclick="window.location.reload(true)" style="margin-top:5px;padding:4px 8px;cursor:pointer;">立即刷新</button>
+                        `;
+                        notification.style.display = 'block';
+                        // 不自动隐藏，直到用户刷新
+                    } else {
+                        // 备用方案
+                        if (confirm('游戏已发布新版本，是否刷新以获取最新内容？')) {
+                             window.location.reload(true);
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            // 忽略网络错误，可能是离线状态
+            // console.error('检查更新失败:', e);
+        }
     }
 
     init() {

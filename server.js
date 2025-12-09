@@ -12,6 +12,10 @@ const HTTPS_PORT = 3443;
 const WS_PORT = 8080;
 const WSS_PORT = 8081;  // 安全 WebSocket 端口
 
+// 应用版本号（使用启动时间戳）
+const APP_VERSION = Date.now().toString();
+console.log(`📱 当前应用版本: ${APP_VERSION}`);
+
 // SSL 证书配置（可选）
 const SSL_CERT_PATH = path.join(__dirname, 'ssl', 'cert.pem');
 const SSL_KEY_PATH = path.join(__dirname, 'ssl', 'key.pem');
@@ -21,7 +25,20 @@ const hasSSL = fs.existsSync(SSL_CERT_PATH) && fs.existsSync(SSL_KEY_PATH);
 
 // 静态文件处理函数
 const handleStaticFiles = (req, res) => {
-    let filePath = '.' + req.url;
+    // 处理版本查询接口
+    if (req.url === '/version') {
+        res.writeHead(200, {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+        });
+        res.end(JSON.stringify({ version: APP_VERSION }));
+        return;
+    }
+
+    // 解析 URL，去除查询参数
+    const urlObj = new URL(req.url, `http://${req.headers.host}`);
+    let filePath = '.' + urlObj.pathname;
+
     if (filePath === './') {
         filePath = './auth.html';
     }
@@ -53,8 +70,38 @@ const handleStaticFiles = (req, res) => {
                 res.end('服务器错误: ' + error.code, 'utf-8');
             }
         } else {
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content, 'utf-8');
+            // 如果是 HTML 文件，注入版本号并替换资源链接
+            if (contentType === 'text/html') {
+                let html = content.toString('utf-8');
+
+                // 注入版本号变量
+                const versionScript = `<script>window.APP_VERSION = "${APP_VERSION}";</script>`;
+                if (html.includes('<head>')) {
+                    html = html.replace('<head>', '<head>\n    ' + versionScript);
+                } else {
+                    html = versionScript + html;
+                }
+
+                // 替换资源链接，加上版本号 (只替换本地 js 和 css)
+                html = html.replace(/(src|href)=["']([^"']+\.(js|css))["']/g, (match, attr, url) => {
+                    // 忽略已经是绝对路径的 (http/https)
+                    if (url.startsWith('http') || url.startsWith('//')) return match;
+                    return `${attr}="${url}?v=${APP_VERSION}"`;
+                });
+
+                // 设置响应头，禁止缓存 HTML
+                res.writeHead(200, {
+                    'Content-Type': contentType,
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                });
+                res.end(html, 'utf-8');
+            } else {
+            // 其他静态资源
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(content, 'utf-8');
+            }
         }
     });
 };

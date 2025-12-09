@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# 获取脚本所在目录的绝对路径
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# 切换到项目根目录
+cd "$SCRIPT_DIR/.." || exit
+
 # 配置
 APP_NAME="game.js"
 PID_FILE="server.pid"
@@ -30,8 +35,8 @@ if [ -f "$PID_FILE" ]; then
     PID=$(cat "$PID_FILE")
     if ps -p "$PID" > /dev/null 2>&1; then
         echo -e "${YELLOW}⚠️  服务器似乎已经在运行中 (PID: $PID)${NC}"
-        echo "   如果需要重启，请运行 ./restart.sh"
-        echo "   如果需要停止，请运行 ./stop.sh"
+        echo "   如果需要重启，请运行 ./scripts/restart.sh"
+        echo "   如果需要停止，请运行 ./scripts/stop.sh"
         exit 1
     else
         # PID文件存在但进程不在，清理残留文件
@@ -70,9 +75,9 @@ if ps -p "$PID" > /dev/null 2>&1; then
     fi
     echo ""
     echo "💡 提示:"
-    echo "   - 查看日志: ./log.sh"
-    echo "   - 停止服务: ./stop.sh"
-    echo "   - 重启服务: ./restart.sh"
+    echo "   - 查看日志: ./scripts/log.sh"
+    echo "   - 停止服务: ./scripts/stop.sh"
+    echo "   - 重启服务: ./scripts/restart.sh"
 else
     echo -e "${RED}❌ 服务器启动失败，请查看日志:${NC}"
     cat "$LOG_FILE"
