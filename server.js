@@ -301,7 +301,7 @@ function sanitizeGameState(gameState) {
 async function loadAccounts() {
     let release;
     try {
-        release = await lockfile.lock(ACCOUNTS_FILE, { retries: 5 });
+        release = await lockfile.lock(ACCOUNTS_FILE, { retries: 5, stale: 5000 });
         const data = fs.readFileSync(ACCOUNTS_FILE, 'utf8');
         return JSON.parse(data);
     } catch (e) {
@@ -316,7 +316,7 @@ async function loadAccounts() {
 async function saveAccounts(accounts) {
     let release;
     try {
-        release = await lockfile.lock(ACCOUNTS_FILE, { retries: 5 });
+        release = await lockfile.lock(ACCOUNTS_FILE, { retries: 5, stale: 5000 });
         fs.writeFileSync(ACCOUNTS_FILE, JSON.stringify(accounts, null, 2), 'utf8');
         return true;
     } catch (e) {

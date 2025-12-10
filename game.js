@@ -51,6 +51,8 @@ class IdleGame {
         this.isIntentionalClose = false; // 是否主动关闭
         this.authTimeout = null; // 认证超时定时器
         this.isAuthenticated = false; // 是否已认证
+        this.authFailureCount = 0; // 认证失败计数
+        this.maxAuthFailures = 3; // 最大认证失败次数
         
         // 音乐系统
         this.musicEnabled = localStorage.getItem('musicEnabled') === 'true'; // 默认静音
@@ -414,6 +416,19 @@ class IdleGame {
                         this.authTimeout = setTimeout(() => {
                             if (!this.isAuthenticated) {
                                 console.error('❌ 会话认证超时，可能网络问题或服务器繁忙');
+                                
+                                // 增加失败计数
+                                this.authFailureCount++;
+                                console.log(`⚠️ 认证失败次数: ${this.authFailureCount}/${this.maxAuthFailures}`);
+                                
+                                if (this.authFailureCount >= this.maxAuthFailures) {
+                                    console.error('🚫 多次认证失败，强制清理缓存并重新登录');
+                                    this.showNotification('连接异常，正在重置登录状态...');
+                                    localStorage.removeItem('currentUser');
+                                    setTimeout(() => window.location.href = 'auth.html', 1000);
+                                    return;
+                                }
+
                                 this.showNotification('认证超时，正在重试...');
                                 this.ws.close();
                             }
@@ -575,6 +590,7 @@ class IdleGame {
             
             if (message.success) {
                 this.isAuthenticated = true;
+                this.authFailureCount = 0; // 重置失败计数
                 this.showNotification('已连接到多人社区');
                 
                 // 加载服务器上的用户数据
